@@ -34,9 +34,9 @@ a lot of "bake"! Reorganize things?).
     )
     (bake/bake app "input" "output")
 
-The above will copy all static content from directory input to
-directory output and also save the dynamic content returned by the
-handler.
+The above will copy all static content from directory `input` to
+directory `output` and also save the dynamic content returned by the
+handler. By default, the first request URI used is "/".
 
 Sometimes it is useful to have a static site where all of the internal
 links are relative. Such a site can be opened directly by a browser
