@@ -17,7 +17,8 @@
 (defn- do-request [uri req-func]
   "Send a request for the given uri to the handler req-func. Returns
 the body of the result."
-  (:body (req-func (mock/request :get uri))))
+  (let [response (req-func (mock/request :get uri))]
+    (:body response)))
 
 (defn- bake-to-file [dir uri req-func]
   (println "bake" uri)
@@ -88,11 +89,11 @@ three keyworks :http :bake :bake-local"
 
 
 (defn bake
-  "Bakes a static website in the output-dir that contains both the
-static content from the input-dir and the dynamic content obtained
-from the req-func. First, anything in the output-dir that isn't in the
-input-dir is deleted, then newer files from the input-dir are copied
-to the output-dir. Finally, requests are made from the starting
+  "Bakes a static website in the output-dir that contains both the the
+dynamic content obtained from the req-func and static content from the
+optional input-dir. First, anything in the output-dir that isn't in
+the input-dir is deleted, then newer files from the input-dir are
+copied to the output-dir. Finally, requests are made from the starting
 url (default \"/\") are sent to req-func to obtain the site's dynamic
 content.
 
@@ -102,12 +103,11 @@ Options:
 :force-relative true
 - makes internal links relative. Useful if you want to open the files in a browser.
 "
-  ;; TODO: Make input-dir optional
   ;; TODO: More options for controlling what will be baked! Multiple
   ;; start locations, filter functions for requests URLs, etc.
   ;; TODO: Add option for index names. default "index.html"
   ;; TODO: Add option for site root which will be added to absolute links. default "/"
-  [req-func input-dir output-dir & {:keys [force-relative start] :or {start "/"}}]
+  [req-func output-dir & {:keys [input-dir force-relative start] :or {start "/"}}]
   (println "bake from" input-dir "to" output-dir "start:" start (when force-relative "force-relative"))
   
   (ring.bake.staticfiles/update-output input-dir output-dir)

@@ -32,7 +32,7 @@ a lot of "bake"! Reorganize things?).
     (defn app [req]
       ;; a Ring handler function
     )
-    (bake/bake app "input" "output")
+    (bake/bake app "output" :input-dir "input")
 
 The above will copy all static content from directory `input` to
 directory `output` and also save the dynamic content returned by the
@@ -57,6 +57,76 @@ URIs need to be requested.
 Informs ring-bake of the path to another page within the site. This
 also returns a possibly modified version of the path which should
 be used in the resulting page.
+
+Call the function `local-uri` as you are building the reponse pages
+in the context of calls to the Ring handler. 
+
+Example
+-------
+
+Here is a simple but complete example:
+
+    (ns ring.bake.ex
+      (:require [ring.bake [bake :as bake]])
+      (:require [ring.util.response :as response])
+      (:use net.cgrand.moustache))
+    
+    (defn a [uri body] 
+      (str "<a href=\"" (bake/local-uri uri) "\">" body "</a>"))
+    
+    (def routes
+      (app
+       []
+       (fn [req]
+         (response/response
+          (str
+           "<html><body>"
+           (a "/1/page.html" "link") "<br>"
+           (a "/2/page.html" "other link")
+           "</body></html>")))
+   
+       [param "page.html"]
+       (fn [req]
+         (response/response
+          (str
+           "<html><header><title>Page " param
+           "</title></header><body>"
+           (a "/" "main page")
+           "</body></html>")))))
+    
+        (defn bake []
+          (bake/bake routes "output")
+          (bake/bake routes "output-rel" :force-relative true))
+
+I've tried to minimize the dependencies so the example is creating the
+string bodies by hand. In a real application you would want to use a
+library like Hiccup or Enlive. The one additional dependency is on
+moustache for routing, which requires adding `[net.cgrand/moustache
+"1.0.0-SNAPSHOT"]` to `project.clj` although you could use Compojure
+instead.
+
+If you call the `bake` function, the site will be baked twice. After
+baking, look in the directories output and output-rel. Both should
+contain the files
+
+    index.html
+    1/page.html
+    2/page.html
+    3/page.html
+
+To see the effect of the `:force-relative` option. Compare the href of
+the link in `output/other/1/page.html`
+
+    <a href="/">main page</a>
+
+with the href in `output-rel/1/page.html`
+
+    <a href="../index.html">main page</a>
+
+You can open the output of baking with `force-relative` in a browser
+and the paths to the pages, style sheets and images will be valid as
+long as you passed them through `bake/local-uri` when building the
+page.
 
 Images
 ------
