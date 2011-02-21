@@ -112,7 +112,6 @@ contain the files
     index.html
     1/page.html
     2/page.html
-    3/page.html
 
 To see the effect of the `:force-relative` option. Compare the href of
 the link in `output/other/1/page.html`
