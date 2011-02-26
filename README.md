@@ -21,7 +21,7 @@ same Ring handler function that Jetty is using and pass it to
 ring-bake's bake function. It will send mock http requests to the
 handler and combine the resulting response bodies with static files
 from a specified directory to create the static site that you can then
-copy to your webhost.
+copy to your web host.
 
 Baking
 ------
@@ -58,7 +58,7 @@ Informs ring-bake of the path to another page within the site. This
 also returns a possibly modified version of the path which should
 be used in the resulting page.
 
-Call the function `local-uri` as you are building the reponse pages
+Call the function `local-uri` as you are building the response pages
 in the context of calls to the Ring handler. 
 
 Example
@@ -137,13 +137,13 @@ call
 
 which returns a vector [src width height] which you can put straight
 into the img tag. The options :w and :h will scale the image down to
-fit without the specified dimensions.
+fit within the specified dimensions.
 
 For example, if `image.jpg` is a 1000x600 image then `(bake/image
 "image.jpg" :w 200)` would return `["image.w=200.jpg" 200 120]`. As
 you can see, the height is decreased to 120 to maintain and the
 option is encoded in the new path as `w=200`. To serve these resized
-images use the ring middlewware
+images use the ring middleware
 
     (bake/wrap-resize-img app img-dir)
 
