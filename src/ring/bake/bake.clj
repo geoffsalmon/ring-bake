@@ -131,14 +131,14 @@ Options:
 link is the string path. rev-path is the reversed list of path
 elements of the page currently being served."
   [link rev-path]
-  (loop [prefix rev-path
+  (loop [prefix (apply list rev-path)
          suffix (string/split #"/" link)]
     (if suffix
       (if (= ".." (first suffix))
         (recur (pop prefix) (next suffix))
         (recur (conj prefix (first suffix)) (next suffix))
         )
-      (apply str (interpose "/" (reverse prefix)))))
+      (apply str "/" (interpose "/" (reverse prefix)))))
   )
 
 (defn- is-abs?
