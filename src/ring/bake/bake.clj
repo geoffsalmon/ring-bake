@@ -279,20 +279,22 @@ Options:
         (let [{:keys [w h]} opts]
           [(local-uri path) w h])))))
 
+(defn- img-response [img ext]
+  (when img
+    (let [bytes (java.io.ByteArrayOutputStream.)]
+      (javax.imageio.ImageIO/write img ext bytes)
+      (response/response (java.io.ByteArrayInputStream. (.toByteArray bytes))))))
+
 (defn- attempt-process-img [root-dir path]
   (let [{:keys [filename ext opts]} (decode-image-options path)]
     (if filename
       (let [file (File. (.getParentFile (File. root-dir path))
                         filename)]
         (when (.exists file)
-          [(apply image/process-img (image/read-file file) opts)
-           ext])))))
-
-(defn- img-response [img ext]
-  (when img
-    (let [bytes (java.io.ByteArrayOutputStream.)]
-      (javax.imageio.ImageIO/write img ext bytes)
-      (response/response (java.io.ByteArrayInputStream. (.toByteArray bytes))))))
+          (if (seq opts)
+            (img-response (apply image/process-img (image/read-file file) opts) ext)
+            ;; if there are no options, return the file
+            (response/response file)))))))
 
 (defn wrap-resize-img
   "A Ring middleware that adds additional directories that images can
@@ -301,11 +303,11 @@ full-size originals don't need to appear in the input directory passed
 to bake."
   [app input-dir]
   (fn [req]
-    (if-let [[img ext]
+    (if-let [req
              (when (= :get (:request-method req))
                (let [path (.substring (codec/url-decode (:uri req)) 1)]
                  (attempt-process-img input-dir path)))]
-      (img-response img ext)
+      req
 
       ;; add the input dir to img-dirs list in the context and pass
       ;; request to the rest of the handlers
