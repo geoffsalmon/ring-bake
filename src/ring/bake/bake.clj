@@ -99,7 +99,7 @@ content.
 
 Options:
 :start \"/foo.html\"
-- specifies where baking will start from
+- specifies where baking will start from. Can also be a collection of uris.
 :force-relative true
 - makes internal links relative. Useful if you want to open the files in a browser.
 "
@@ -107,7 +107,7 @@ Options:
   ;; start locations, filter functions for requests URLs, etc.
   ;; TODO: Add option for index names. default "index.html"
   ;; TODO: Add option for site root which will be added to absolute links. default "/"
-  [req-func output-dir & {:keys [input-dir force-relative start] :or {start "/"}}]
+  [req-func output-dir & {:keys [input-dir force-relative start] :or {start ["/"]}}]
   (println "bake from" input-dir "to" output-dir "start:" start (when force-relative "force-relative"))
   
   (ring.bake.staticfiles/update-output input-dir output-dir)
@@ -115,10 +115,11 @@ Options:
                        :input-dir input-dir
                        :output-dir output-dir
                        :local (if force-relative true false)}]
-    (loop [uris #{start}]
+    (loop [uris (if (string? start) #{start} (set start))]
       (if-let [uri (first uris)]
         (let [new-links (bake-file output-dir uri req-func force-relative)
-
+              ;; add index.html to any uris that end with "/"
+              new-links (map #(if (= (string/tail 1 %) "/") (str % "index.html") %) new-links)
               ;; combine all known links
               all-links (into (into #{} (rest uris)) new-links)
               ;; remove those links that already exist
