@@ -79,7 +79,7 @@ three keyworks :http :bake :bake-local"
             (merge
              *context*
              {:links (atom #{})
-              :rev-path (rest (reverse (string/split #"/" rel-uri)))
+              :rev-path (rest (reverse (remove empty? (string/split #"/" rel-uri))))
               :depth (calc-depth rel-uri)
               })]
     (bake-to-file output-dir rel-uri req-func)
@@ -139,7 +139,7 @@ elements of the page currently being served."
         (recur (pop prefix) (next suffix))
         (recur (conj prefix (first suffix)) (next suffix))
         )
-      (apply str "/" (interpose "/" (reverse prefix)))))
+      (apply str (interleave (repeat "/") (reverse prefix)))))
   )
 
 (defn- is-abs?
@@ -258,7 +258,6 @@ Options:
   accepts a short list of color names. In future it should take RGB
   colors.
 "
-  
   (let [[_ abs-path] (process-path path)
         rel-from-root (string/drop 1 abs-path)]
     ;; this is called while serving a page. Try to find the image by
