@@ -8,10 +8,11 @@
   (:use [clojure.contrib.except :only [throwf]])
   (:use clojure.contrib.java-utils)
   (:require (ring.util [codec :as codec]
-                       [response :as response]))
+                       [response :as response]
+                       [mime-type :as mime-type]))
   (:require [ring.mock.request :as mock])
 
-  (:import (java.io File InputStream FileInputStream BufferedReader InputStreamReader)))
+  (:import (java.io File InputStream FileInputStream BufferedReader InputStreamReader ByteArrayOutputStream)))
 
 
 (defn- do-request [uri req-func]
@@ -226,6 +227,14 @@ will convert absolute paths to relative ones."
              :ext ext
              :opts (flatten (seq opt-map))}))))))
 
+(defn- base64-file [file]
+  (str
+   "data:"
+   (mime-type/ext-mime-type (.getAbsolutePath file))
+;;   "image/png"
+   ";base64,"
+   (codec/base64-encode (io/to-byte-array file))))
+
 (defn image [path & opts]
   "Creates an image src path and determines the width and height of
 the image. Returns a vector [image_src, width, height] which can be
@@ -259,7 +268,8 @@ Options:
   colors.
 "
   (let [[_ abs-path] (process-path path)
-        rel-from-root (string/drop 1 abs-path)]
+        rel-from-root (string/drop 1 abs-path)
+        {data-uri :data-uri} (apply hash-map opts)]
     ;; this is called while serving a page. Try to find the image by
     ;; checking the directories passed to the surrounding
     ;; wrap-resize-img
@@ -269,7 +279,10 @@ Options:
               img-file (jio/file dir rel-from-root)]
           (if (.exists img-file)
             (let [{[width height] :final-size} (apply image/create-pipeline img-file opts)]
-              [(local-uri (apply encode-image-options path opts)) width height])
+              (if data-uri
+                ;; encode the
+                [(base64-file img-file) width height]
+                [(local-uri (apply encode-image-options path opts)) width height]))
 
             ;; doesn't exist. look in other dirs
             (recur (next dirs))))
