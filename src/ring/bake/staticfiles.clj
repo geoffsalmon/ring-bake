@@ -40,7 +40,10 @@ another. Only copies files if the modification time is newer."
   (.mkdir (File. output-dir))
 
   (if input-dir
-    (let [inputs (scan-dir (File. input-dir))
+    (let [inputs  (scan-dir (File. input-dir))
+          ;; remove the js and css files so that they'll be requested
+          ;; from server and possible compressed in the process.
+          inputs (set (remove #(re-matches #".*\.(js|css)$" %) inputs))
           outputs  (scan-dir (File. output-dir))]
 
       ;; Delete unknown outputs. Reverse sort to delete contents of
