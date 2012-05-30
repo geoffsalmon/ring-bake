@@ -156,6 +156,6 @@ not.
 License
 -------
 
-Copyright (c) 2011 Geoffrey Salmon
+Copyright (c) 2012 Geoffrey Salmon
 
 Distributed under the Expat License

@@ -1,4 +1,4 @@
-(defproject ring-bake "0.2.0"
+(defproject org.clojars.geoffsalmon/ring-bake "0.2.0"
   :description "Library for baking static websites from Ring handlers"
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
